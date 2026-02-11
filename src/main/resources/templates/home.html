@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Forcicd Home</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --pink-50: #fff3f7;
+      --pink-100: #ffe0ec;
+      --pink-200: #ffc2d9;
+      --pink-300: #ff9fc3;
+      --pink-500: #ff5f9e;
+      --pink-700: #cc2f6c;
+      --ink: #2b1b22;
+      --card: #fff7fb;
+      --border: #f2b7cf;
+      --shadow: 0 20px 50px rgba(255, 95, 158, 0.18);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: "Avenir Next", "Trebuchet MS", Arial, sans-serif;
+      background: radial-gradient(circle at top, var(--pink-50), #ffffff 50%, var(--pink-100) 100%);
+      color: var(--ink);
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 40px 16px;
+    }
+
+    .card {
+      width: min(560px, 92vw);
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      box-shadow: var(--shadow);
+      padding: 32px;
+    }
+
+    h1 {
+      margin: 0 0 12px;
+      font-size: 28px;
+      letter-spacing: -0.5px;
+    }
+
+    p {
+      margin: 0 0 24px;
+      color: #5a3a48;
+    }
+
+    form {
+      display: grid;
+      gap: 16px;
+    }
+
+    .fields {
+      display: grid;
+      gap: 12px;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    }
+
+    label {
+      display: block;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+
+    input[type="number"] {
+      width: 100%;
+      padding: 12px 14px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: #fff;
+      font-size: 16px;
+      color: var(--ink);
+    }
+
+    input[type="number"]:focus {
+      outline: 2px solid var(--pink-300);
+      border-color: var(--pink-300);
+      box-shadow: 0 0 0 4px rgba(255, 159, 195, 0.25);
+    }
+
+    button {
+      border: none;
+      background: linear-gradient(135deg, var(--pink-500), var(--pink-700));
+      color: white;
+      font-weight: 700;
+      padding: 12px 16px;
+      border-radius: 12px;
+      cursor: pointer;
+      font-size: 16px;
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    button:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 12px 24px rgba(255, 95, 158, 0.25);
+    }
+
+    .result {
+      border-radius: 14px;
+      border: 1px dashed var(--pink-300);
+      background: #fff;
+      padding: 16px;
+      text-align: center;
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--pink-700);
+      min-height: 56px;
+      display: grid;
+      place-items: center;
+    }
+
+    .result span {
+      color: var(--pink-700);
+    }
+  </style>
+</head>
+<body>
+  <main class="card">
+    <h1>Welcome to Forcicd</h1>
+    <p>Enter two numbers and click the button to see the result.</p>
+
+    <form action="/" method="get">
+      <div class="fields">
+        <div>
+          <label for="firstNumber">First number</label>
+          <input id="firstNumber" name="firstNumber" type="number" required />
+        </div>
+        <div>
+          <label for="secondNumber">Second number</label>
+          <input id="secondNumber" name="secondNumber" type="number" required />
+        </div>
+      </div>
+
+      <button type="submit">Calculate</button>
+
+      <div class="result">
+        <span th:if="${hasResult}" th:text="${result}">0</span>
+        <span th:unless="${hasResult}">Result will appear here</span>
+      </div>
+    </form>
+  </main>
+</body>
+</html>

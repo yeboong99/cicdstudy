@@ -1,0 +1,32 @@
+services:
+  db:
+    image: mysql:8.0
+    environment:
+      MYSQL_DATABASE: forcicd
+      MYSQL_ROOT_PASSWORD: 19990524
+    ports:
+      - "3307:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-uroot", "-p19990524"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+  app:
+    build:
+      context: .
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      SPRING_PROFILES_ACTIVE: local
+      DB_URL: jdbc:mysql://db:3306/forcicd?useSSL=false&serverTimezone=UTC
+      DB_USERNAME: root
+      DB_PASSWORD: 19990524
+      SPRING_OUTPUT_ANSI_ENABLED: ALWAYS
+    ports:
+      - "8080:8080"
+    restart: on-failure
+volumes:
+  mysql_data:
