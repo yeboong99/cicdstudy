@@ -1,17 +1,10 @@
 # PROGRESS.md
 
-## 현재 상태
-- `deploy.yml` 작성 완료 (오타 수정 필요 — 아래 참고)
-- `docker-compose.prod.yml` **아직 미작성**
-
-## deploy.yml 수정 필요 사항 (3개)
-1. `name: CI/CI Pipeline` → `name: CI/CD Pipeline` (오타)
-2. `uses: docker/logint-action@v3` → `uses: docker/login-action@v3` (오타)
-3. `password: ${{ SECRETS.GHCR_TOKEN }}` → `password: ${{ secrets.GHCR_TOKEN }}` (대소문자)
-
-## deploy.yml 확인 필요 사항 (2개)
-1. paths 필터에 `docker-compose.yml`이 아닌 `docker-compose.prod.yml`이 들어가야 함
-2. `./gradlew build -x test`에서 `-x test`(테스트 스킵) 제거 여부 결정 필요
+## 현재 상태: CI/CD 파이프라인 구축 완료
+- `deploy.yml` 작성 완료 (오타 수정 완료)
+- `docker-compose.prod.yml` 작성 완료
+- Repository Secrets 등록 완료 (`GHCR_TOKEN`, `DB_URL`, `DB_USERNAME`, `DB_PASSWORD`)
+- 파이프라인 동작 테스트 성공 — main push 시 자동 배포 확인됨
 
 ## 결정된 사항
 
@@ -45,11 +38,30 @@
 - **artifact 전달** — Dockerfile multi-stage build에서 자체 빌드하므로 불필요
 - **docker run 배포** — docker compose 방식 채택
 
+## 해결한 이슈들
+
+### 빌드 실패 — 테스트 시 DB 연결 오류
+- GitHub 러너에 MySQL이 없어서 `contextLoads()` 테스트 실패
+- 해결: `build.gradle`에 `testRuntimeOnly 'com.h2database:h2'` 추가 + `src/test/resources/application.yml`에 H2 인메모리 DB 설정
+
+### 포트 충돌 — 3306 포트 점유
+- NCP 서버에서 기존 MariaDB Docker 컨테이너가 3306 포트 점유 중이었음
+- 해결: 기존 MariaDB 컨테이너 중지/삭제 후 재배포
+
+### DB 접속 거부 — forcicd_app 사용자 미존재
+- `docker-compose.prod.yml`에 `MYSQL_ROOT_PASSWORD`만 설정하여 root 계정만 존재
+- 해결: MySQL 컨테이너에 접속하여 `forcicd_app` 사용자 수동 생성
+
+### 서버 메모리 부족 — 1GB RAM
+- MySQL 8.0 + Spring Boot 동시 실행 시 서버 멈춤
+- 해결: NCP 인스턴스를 2GB RAM으로 새로 생성
+
+## 미완/권장 사항
+- `docker-compose.prod.yml`에 `MYSQL_USER`, `MYSQL_PASSWORD` 환경변수 추가 권장 (볼륨 초기화 시 수동 사용자 생성 방지)
+- `actions/create-release@v1`의 `set-output` 경고 → 추후 `softprops/action-gh-release@v2`로 교체 고려
+
 ## 다음 할 일
-1. deploy.yml 오타/수정사항 반영
-2. `docker-compose.prod.yml` 작성
-3. Repository Secrets 등록 확인 (`DB_URL`, `DB_USERNAME`, `DB_PASSWORD`)
-4. main에 push하여 파이프라인 동작 테스트
+- 프로젝트 기능 개발 진행
 
 ## 참고: 코드 작성 규칙
 - Claude는 `.md` 파일 외에는 직접 생성/수정하지 않음

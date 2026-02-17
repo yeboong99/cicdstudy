@@ -1,6 +1,7 @@
 services:
   db:
     image: mysql:8.0
+    restart: unless-stopped
     environment:
       MYSQL_DATABASE: forcicd
       MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
@@ -16,6 +17,7 @@ services:
 
   app:
     image: ghcr.io/yeboong99/forcicd:latest
+    restart: unless-stopped
     depends_on:
       db:
         condition: service_healthy
@@ -26,7 +28,6 @@ services:
       DB_PASSWORD: ${DB_PASSWORD}
     ports:
       - "8080:8080"
-    restart: on-failure
 
 volumes:
   mysql_data:

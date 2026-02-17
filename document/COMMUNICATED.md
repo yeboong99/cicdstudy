@@ -131,8 +131,68 @@ Repository Secrets에 아래 3개를 추가하라고 안내했다.
 - 클라우드 제공자의 API 키로 인증. Terraform 자체는 무료, 생성된 인프라에만 비용 발생.
 - 서버 1대 규모에서는 불필요. 콘솔에서 수동 생성으로 충분.
 
-## 미완/다음 작업
-- deploy.yml 오타 수정 (3건) + 확인 사항 반영 (2건)
-- `docker-compose.prod.yml` 작성
-- Repository Secrets 등록 (`DB_URL`, `DB_USERNAME`, `DB_PASSWORD`)
-- main에 push하여 파이프라인 동작 테스트
+## 배포 과정에서 발생한 이슈 및 해결
+
+### 빌드 실패: H2 인메모리 DB 도입
+- GitHub 러너에 MySQL이 없어 `contextLoads()` 테스트 실패.
+- `build.gradle`에 `testRuntimeOnly 'com.h2database:h2'` 추가.
+- `src/test/resources/application.yml`에 H2 설정 추가 (테스트 전용).
+- 테스트 시에만 H2가 사용되고 메인 코드에는 영향 없음.
+
+### 포트 충돌: 기존 MariaDB 컨테이너
+- NCP 서버에서 이전에 실습용으로 띄웠던 MariaDB 컨테이너가 3306 포트 점유.
+- `docker stop` + `docker rm`으로 해결.
+
+### 서버 메모리 부족
+- 1GB RAM(mi1-g3)으로 MySQL 8.0 + Spring Boot 동시 실행 시 서버 멈춤.
+- 2GB RAM 인스턴스로 새로 생성하여 해결.
+
+### DB 사용자 미존재
+- `MYSQL_ROOT_PASSWORD`만 설정하여 root만 존재, `forcicd_app` 접속 불가.
+- MySQL 컨테이너에 직접 접속하여 사용자 생성으로 해결.
+- 향후 `docker-compose.prod.yml`에 `MYSQL_USER`, `MYSQL_PASSWORD` 추가 권장.
+
+## NCP 서버 설정 과정
+
+### 새 인스턴스 초기 설정 순서
+1. `sudo apt update && sudo apt upgrade -y`
+2. Docker 설치 (`docker.io` + `docker-compose-plugin`)
+3. GitHub self-hosted runner 설치 및 등록 (라벨: `work-1`)
+4. runner 서비스 등록 (`sudo ./svc.sh install && sudo ./svc.sh start`)
+
+### Docker Compose 플러그인 설치
+- `docker-compose-plugin`은 기본 apt 저장소에 없음.
+- Docker 공식 저장소(GPG 키 + apt source) 추가 후 설치 필요.
+
+### GitHub Runner 주의사항
+- root 사용자로 실행 불가. 별도 사용자 생성 필요 (`useradd -m runner`).
+- `svc.sh`로 서비스 등록하면 서버 재시작 시 자동 실행.
+- `systemctl enable docker`로 Docker도 자동 시작 설정.
+- 인스턴스 종료 후 재시작 시 runner만 다시 켜면 됨 (서비스 등록 시 자동).
+
+### NCP 요금
+- 인스턴스 중지해도 스토리지 요금은 계속 부과됨.
+- 완전히 요금을 안 내려면 인스턴스 반납(삭제) 필요.
+
+## GitHub Actions 추가 학습
+
+### docker/build-push-action의 Artifact
+- `docker/build-push-action`이 자동 생성하는 빌드 메타데이터.
+- Job 간 파일 전달용 artifact와는 다른 개념. 무시해도 됨.
+
+### GitHub Actions Re-run
+- 특정 Job만 실패했을 때 **Re-run failed jobs**로 해당 Job만 재실행 가능.
+- 전체를 다시 push할 필요 없음.
+
+### docker compose up -d 동작
+- 처음 실행 시: 컨테이너 생성 + 시작.
+- 이미 컨테이너가 있을 때: 이미지 변경 시 해당 컨테이너만 자동 재생성.
+- 명시적 `docker compose down` 없이도 업데이트 가능.
+
+### actions/create-release@v1 경고
+- `set-output` deprecated 경고 발생. 동작에는 문제없음.
+- 추후 `softprops/action-gh-release@v2`로 교체하면 해결.
+
+## 현재 상태
+- CI/CD 파이프라인 구축 완료.
+- main push 시 자동 배포 정상 동작 확인됨.

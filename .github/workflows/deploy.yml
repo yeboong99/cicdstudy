@@ -92,12 +92,16 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Setup deploy directory
+        run: |
+          mkdir -p ~/app
+          cp docker-compose.prod.yml ~/app/docker-compose.prod.yml
+
       - name: Log in to GHCR
         run: echo "${{ secrets.GHCR_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
 
       - name: Deploy with Docker Compose
-        run: docker compose -f docker-compose.prod.yml pull && docker compose -f docker-compose.prod.yml up -d
-        env:
-          DB_URL: ${{ secrets.DB_URL }}
-          DB_USERNAME: ${{ secrets.DB_USERNAME }}
-          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+        run: |
+          cd ~/app
+          docker compose -f docker-compose.prod.yml pull
+          docker compose -f docker-compose.prod.yml up -d
