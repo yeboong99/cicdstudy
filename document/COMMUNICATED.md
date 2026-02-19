@@ -193,6 +193,37 @@ Repository Secrets에 아래 3개를 추가하라고 안내했다.
 - `set-output` deprecated 경고 발생. 동작에는 문제없음.
 - 추후 `softprops/action-gh-release@v2`로 교체하면 해결.
 
+## 배포 안정화 — 서버 수동 관리 가능하도록 개선
+
+### 문제 상황
+- 서버 재시작 후 컨테이너는 존재하나 접속 불가.
+- `docker compose down` 실행 시 compose 파일을 찾을 수 없다는 에러 발생.
+- 원인: deploy job이 GitHub Actions checkout 디렉토리에서 compose를 실행하여, job 종료 후 파일이 소실됨.
+
+### 해결 방향 논의
+- deploy job에서 compose 파일을 서버의 고정 경로(`~/app/`)에 복사 후 실행하는 방식 채택.
+- 환경변수 관리 방식 논의:
+  - 방법 A: GitHub Secrets 값으로 `.env` 파일을 워크플로우에서 생성.
+  - 방법 B: 서버에 `.env`를 직접 두고 워크플로우에서는 건드리지 않음.
+  - **방법 B 채택** — 현재 규모에서는 서버에서 직접 관리하는 게 간단. 환경변수 추가 시 서버의 `.env`만 수정하면 됨.
+
+### 적용한 변경사항
+1. `docker-compose.prod.yml`: `restart: unless-stopped` 추가 (db, app 모두).
+2. `deploy.yml` deploy job:
+   - `Setup deploy directory` step 추가 — `mkdir -p ~/app && cp docker-compose.prod.yml ~/app/`.
+   - `Deploy` step — `cd ~/app`에서 실행하여 `.env` 자동 참조.
+   - `env:` 블록(DB_URL, DB_USERNAME, DB_PASSWORD) 제거.
+3. 서버에 `~/app/.env` 직접 생성 (DB_URL에서 `localhost` → `db`로 서비스명 사용).
+
+### 환경변수 관리 관련 학습
+- 소규모: 서버에 `.env` 직접 관리 (SSH 접속해서 수정).
+- 중규모: GitHub Secrets 활용 (ENV_FILE 하나로 통째 관리 가능).
+- 대규모: AWS Secrets Manager, HashiCorp Vault 등 전용 Secrets Manager 사용.
+
+### 기존 컨테이너 정리
+- `docker compose -p cicdstudy down` 으로 compose 파일 없이 프로젝트 이름으로 정리 가능.
+
 ## 현재 상태
-- CI/CD 파이프라인 구축 완료.
+- CI/CD 파이프라인 구축 완료 + 배포 안정화 완료.
 - main push 시 자동 배포 정상 동작 확인됨.
+- 서버에서 수동 관리 가능: `cd ~/app && docker compose -f docker-compose.prod.yml down/up -d/logs -f`.

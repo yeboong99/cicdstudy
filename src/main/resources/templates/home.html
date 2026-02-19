@@ -131,16 +131,16 @@
     <form action="/" method="get">
       <div class="fields">
         <div>
-          <label for="firstNumber">First number</label>
+          <label for="firstNumber">첫 번째 숫자</label>
           <input id="firstNumber" name="firstNumber" type="number" required />
         </div>
         <div>
-          <label for="secondNumber">Second number</label>
+          <label for="secondNumber">두 번째 숫자</label>
           <input id="secondNumber" name="secondNumber" type="number" required />
         </div>
       </div>
 
-      <button type="submit">Calculate</button>
+      <button type="submit">계산(더하기)</button>
 
       <div class="result">
         <span th:if="${hasResult}" th:text="${result}">0</span>

@@ -87,21 +87,25 @@ jobs:
   deploy:
     name: 배포
     needs: docker
-    runs-on: [ self-hosted, work-1 ]
+    runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ap-northeast-2
 
-      - name: Setup deploy directory
+      - name: DEPLOY via SSM
         run: |
-          mkdir -p ~/app
-          cp docker-compose.prod.yml ~/app/docker-compose.prod.yml
-
-      - name: Log in to GHCR
-        run: echo "${{ secrets.GHCR_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
-
-      - name: Deploy with Docker Compose
-        run: |
-          cd ~/app
-          docker compose -f docker-compose.prod.yml pull
-          docker compose -f docker-compose.prod.yml up -d
+          COMMAND_ID=$(aws ssm send-command \
+          --instance-ids "${{ secrets.EC2_INSTANCE_ID }}" \
+          --document-name "AWS-RunShellScript" \
+          --parameters 'commands=["set -e && mkdir -p /home/ubuntu/app && curl -fsSL -H \"Authorization: token ${{ secrets.GHCR_TOKEN }}\" https://raw.githubusercontent.com/yeboong99/forcicd/main/docker-compose.prod.yml -o /home/ubuntu/app/docker-compose.prod.yml && echo ${{ secrets.GHCR_TOKEN }} | docker login ghcr.io -u yeboong99 --password-stdin && cd /home/ubuntu/app && docker compose -f docker-compose.prod.yml pull && docker compose -f docker-compose.prod.yml up -d"]' \
+          --region ap-northeast-2 \
+          --query "Command.CommandId" \
+          --output text)
+          
+          aws ssm wait command-executed \
+          --command-id "$COMMAND_ID" \
+          --instance-id "${{ secrets.EC2_INSTANCE_ID }}"

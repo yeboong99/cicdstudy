@@ -4,8 +4,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Working Rules
 
-- `.md` 파일을 제외한 모든 파일은 직접 생성/수정/삭제하지 않는다.
-- 코드 변경이 필요하면 전체 코드 스니펫을 사용자에게 보여주고, 사용자가 직접 작성한다.
+- Never directly create/modify/delete any file except `.md` files.
+- When code changes are needed, show the full code snippet to the user. The user will type and apply it themselves.
+- When multiple files need changes, present them **one file at a time**. Wait for the user to confirm each change before proceeding to the next file.
 
 ## Build & Development Commands
 
@@ -49,4 +50,9 @@ Config files: `application.yml` (base), `application-local.yml`, `application-pr
 
 ## Deployment
 
-Multi-stage Dockerfile (JDK 17 build → JRE 17 runtime). Docker Compose orchestrates MySQL 8.0 + app on port 8080. CI/CD via GitHub Actions to self-hosted runner is planned but not yet configured.
+Multi-stage Dockerfile (JDK 17 build → JRE 17 runtime). Docker Compose orchestrates MySQL 8.0 + app on port 8080. CI/CD via GitHub Actions to self-hosted runner is configured and operational.
+
+- Deploy job copies `docker-compose.prod.yml` to `~/app/` on the server, then runs from there.
+- Environment variables are managed directly in `~/app/.env` on the server (not via GitHub Secrets).
+- `restart: unless-stopped` policy ensures containers auto-restart after server reboot.
+- Manual server management: `cd ~/app && docker compose -f docker-compose.prod.yml down/up -d/logs -f`
