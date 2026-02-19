@@ -5,6 +5,9 @@ services:
     environment:
       MYSQL_DATABASE: forcicd
       MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+      MYSQL_USER: ${DB_USERNAME}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+
     ports:
       - "3306:3306"
     volumes:
@@ -14,6 +17,7 @@ services:
       interval: 5s
       timeout: 3s
       retries: 20
+
 
   app:
     image: ghcr.io/yeboong99/forcicd:latest
