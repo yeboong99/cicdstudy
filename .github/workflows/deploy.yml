@@ -89,6 +89,9 @@ jobs:
     needs: docker
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
@@ -96,16 +99,19 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ap-northeast-2
 
-      - name: DEPLOY via SSM
+      - name: Deploy via SSM
         run: |
-          COMMAND_ID=$(aws ssm send-command \
-          --instance-ids "${{ secrets.EC2_INSTANCE_ID }}" \
-          --document-name "AWS-RunShellScript" \
-          --parameters 'commands=["set -e && mkdir -p /home/ubuntu/app && curl -fsSL -H \"Authorization: token ${{ secrets.GHCR_TOKEN }}\" https://raw.githubusercontent.com/yeboong99/forcicd/main/docker-compose.prod.yml -o /home/ubuntu/app/docker-compose.prod.yml && echo ${{ secrets.GHCR_TOKEN }} | docker login ghcr.io -u yeboong99 --password-stdin && cd /home/ubuntu/app && docker compose -f docker-compose.prod.yml pull && docker compose -f docker-compose.prod.yml up -d"]' \
-          --region ap-northeast-2 \
-          --query "Command.CommandId" \
-          --output text)
+          COMPOSE_B64=$(base64 -w 0 docker-compose.prod.yml)
+          GHCR_TOKEN="${{ secrets.GHCR_TOKEN }}"
           
+          COMMAND_ID=$(aws ssm send-command \
+            --instance-ids "${{ secrets.EC2_INSTANCE_ID }}" \
+            --document-name "AWS-RunShellScript" \
+            --parameters "commands=[\"set -e\",\"mkdir -p /home/ubuntu/app\",\"echo ${COMPOSE_B64} | base64 -d > /home/ubuntu/app/docker-compose.prod.yml\",\"echo ${GHCR_TOKEN} | docker login ghcr.io -u yeboong99 --password-stdin\",\"cd /home/ubuntu/app && docker compose -f docker-compose.prod.yml pull && docker compose -f docker-compose.prod.yml up -d\"]" \
+            --region ap-northeast-2 \
+            --query "Command.CommandId" \
+            --output text)
+    
           aws ssm wait command-executed \
           --command-id "$COMMAND_ID" \
           --instance-id "${{ secrets.EC2_INSTANCE_ID }}"
