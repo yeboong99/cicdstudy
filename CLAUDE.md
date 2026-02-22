@@ -38,6 +38,13 @@ Config files: `application.yml` (base), `application-local.yml`, `application-pr
 - No linter/formatter configured — match existing file style
 - Test classes use `*Tests` suffix, mirror main package structure in `src/test/java`
 
+## Agent Work Sequence
+
+1. Execute the assigned task.
+2. If the task includes development/refactoring/configuration changes, verify behavior by testing.
+   - For development tasks, add/update unit and integration tests and run them.
+3. If tests pass, commit the changes, then ask the user whether to proceed with PR creation.
+
 ## Commit Convention
 
 `[Type] Summary` format (e.g., `[Feature] Add user login`, `[Fix] Handle null input`)
