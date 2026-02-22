@@ -27,6 +27,12 @@
 - Place unit/integration tests in `src/test/java` mirroring main package structure.
 - Run tests with `./gradlew test` before submitting changes.
 
+## Agent Work Sequence
+1. Execute the assigned task.
+2. If the task includes development/refactoring/configuration changes, verify behavior by testing.
+   - For development tasks, add/update unit and integration tests and run them.
+3. If tests pass, commit the changes, then ask the user whether to proceed with PR creation.
+
 ## Commit & Pull Request Guidelines
 - Git history is minimal; the only existing commit uses a bracketed prefix (`[Start] ...`).
 - Until a convention is agreed, use short, descriptive commit messages; optional format: `[Type] Summary` (e.g., `[Fix] Handle null input`).

@@ -38,15 +38,32 @@ Config files: `application.yml` (base), `application-local.yml`, `application-pr
 - No linter/formatter configured — match existing file style
 - Test classes use `*Tests` suffix, mirror main package structure in `src/test/java`
 
+## Agent Work Sequence
+
+1. Execute the assigned task.
+2. If the task includes development/refactoring/configuration changes, verify behavior by testing.
+   - For development tasks, add/update unit and integration tests and run them.
+3. If tests pass, commit the changes, then ask the user whether to proceed with PR creation.
+
 ## Commit Convention
 
 `[Type] Summary` format (e.g., `[Feature] Add user login`, `[Fix] Handle null input`)
 
 ## Deployment
 
-Multi-stage Dockerfile (JDK 17 build → JRE 17 runtime). Docker Compose orchestrates MySQL 8.0 + app on port 8080. CI/CD via GitHub Actions to self-hosted runner is configured and operational.
+Multi-stage Dockerfile (JDK 17 build → JRE 17 runtime). Docker Compose orchestrates MySQL 8.0 + app on port 8080.
+
+Production delivery uses `.github/workflows/deploy.yml` (GitHub-hosted runner):
+- build (`./gradlew build`)
+- tag/release creation
+- GHCR image push
+- AWS SSM-based deployment to EC2
 
 - Deploy job copies `docker-compose.prod.yml` to `~/app/` on the server, then runs from there.
 - Environment variables are managed directly in `~/app/.env` on the server (not via GitHub Secrets).
 - `restart: unless-stopped` policy ensures containers auto-restart after server reboot.
 - Manual server management: `cd ~/app && docker compose -f docker-compose.prod.yml down/up -d/logs -f`
+
+## PR and Merge Flow
+
+PR review/merge decisions are manual (PL/user-driven). No repository-level auto-merge orchestration workflow is configured.
