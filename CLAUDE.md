@@ -2,12 +2,6 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-## Working Rules
-
-- Never directly create/modify/delete any file except `.md` files.
-- When code changes are needed, show the full code snippet to the user. The user will type and apply it themselves.
-- When multiple files need changes, present them **one file at a time**. Wait for the user to confirm each change before proceeding to the next file.
-
 ## Build & Development Commands
 
 - `./gradlew bootRun` — Run the Spring Boot app (default profile: local)
