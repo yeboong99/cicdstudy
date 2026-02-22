@@ -12,6 +12,7 @@ import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
+import com.neulboong.forcicd.calculator.domain.Operator;
 import com.neulboong.forcicd.calculator.service.CalculatorService;
 
 @WebMvcTest(CalculatorController.class)
@@ -125,6 +126,38 @@ class CalculatorControllerTests {
 				.andExpect(jsonPath("$.status").value(400))
 				.andExpect(jsonPath("$.error").value("Bad Request"))
 				.andExpect(jsonPath("$.message").value("0으로 나눌 수 없습니다."));
+		}
+	}
+
+	@Nested
+	@DisplayName("GET /cal/calculate")
+	class CalculateEndpoint {
+
+		@Test
+		@DisplayName("유효한 operator면 200 OK")
+		void calculateSuccess() throws Exception {
+			given(calculatorService.calculate(9, 3, Operator.DIVIDE)).willReturn("3");
+
+			mockMvc.perform(get("/cal/calculate")
+					.param("firstNumber", "9")
+					.param("secondNumber", "3")
+					.param("operator", "divide"))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.operator").value("divide"))
+				.andExpect(jsonPath("$.result").value("3"));
+		}
+
+		@Test
+		@DisplayName("유효하지 않은 operator면 400 에러 응답")
+		void calculateInvalidOperator() throws Exception {
+			mockMvc.perform(get("/cal/calculate")
+					.param("firstNumber", "9")
+					.param("secondNumber", "3")
+					.param("operator", "mod"))
+				.andExpect(status().isBadRequest())
+				.andExpect(jsonPath("$.status").value(400))
+				.andExpect(jsonPath("$.error").value("Bad Request"))
+				.andExpect(jsonPath("$.message").value("지원하지 않는 operator입니다: mod"));
 		}
 	}
 }

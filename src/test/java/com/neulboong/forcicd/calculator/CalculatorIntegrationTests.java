@@ -110,6 +110,19 @@ class CalculatorIntegrationTests {
 				.andExpect(jsonPath("$.operator").value("add"))
 				.andExpect(jsonPath("$.result").value("-80"));
 		}
+
+		@Test
+		@DisplayName("동적 연산 API - 잘못된 operator 입력 시 400 에러")
+		void calculateInvalidOperatorEndToEnd() throws Exception {
+			mockMvc.perform(get("/cal/calculate")
+					.param("firstNumber", "10")
+					.param("secondNumber", "3")
+					.param("operator", "mod"))
+				.andExpect(status().isBadRequest())
+				.andExpect(jsonPath("$.status").value(400))
+				.andExpect(jsonPath("$.error").value("Bad Request"))
+				.andExpect(jsonPath("$.message").value("지원하지 않는 operator입니다: mod"));
+		}
 	}
 
 	@Nested
@@ -146,6 +159,18 @@ class CalculatorIntegrationTests {
 					.param("operator", "divide"))
 				.andExpect(status().isOk())
 				.andExpect(model().attribute("result", "0으로 나눌 수 없습니다."));
+		}
+
+		@Test
+		@DisplayName("잘못된 operator 입력 시 명시적 에러 메시지 표시")
+		void homeWithInvalidOperator() throws Exception {
+			mockMvc.perform(get("/")
+					.param("firstNumber", "10")
+					.param("secondNumber", "3")
+					.param("operator", "mod"))
+				.andExpect(status().isOk())
+				.andExpect(model().attribute("result", "지원하지 않는 operator입니다: mod"))
+				.andExpect(model().attribute("hasResult", true));
 		}
 	}
 }

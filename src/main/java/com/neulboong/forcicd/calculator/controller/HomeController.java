@@ -1,5 +1,7 @@
 package com.neulboong.forcicd.calculator.controller;
 
+import com.neulboong.forcicd.calculator.domain.Operator;
+import com.neulboong.forcicd.calculator.exception.InvalidOperatorException;
 import com.neulboong.forcicd.calculator.service.CalculatorService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
@@ -21,26 +23,22 @@ public class HomeController {
 		Model model
 	) {
 		if (firstNumber != null && secondNumber != null) {
-			String result = calculate(firstNumber, secondNumber, operator);
-			model.addAttribute("result", result);
-			model.addAttribute("hasResult", true);
-			model.addAttribute("operator", operator);
+			try {
+				String result = calculate(firstNumber, secondNumber, operator);
+				model.addAttribute("result", result);
+				model.addAttribute("hasResult", true);
+				model.addAttribute("operator", operator);
+			} catch (ArithmeticException | InvalidOperatorException e) {
+				model.addAttribute("result", e.getMessage());
+				model.addAttribute("hasResult", true);
+				model.addAttribute("operator", operator);
+			}
 		}
 		return "home";
 	}
 
 	private String calculate(int firstNumber, int secondNumber, String operator) {
-		return switch (operator) {
-			case "subtract" -> calculatorService.subtractTwoNums(firstNumber, secondNumber);
-			case "multiply" -> calculatorService.multiplyTwoNums(firstNumber, secondNumber);
-			case "divide" -> {
-				try {
-					yield calculatorService.divideTwoNums(firstNumber, secondNumber);
-				} catch (ArithmeticException e) {
-					yield e.getMessage();
-				}
-			}
-			default -> calculatorService.addTwoNums(firstNumber, secondNumber);
-		};
+		Operator parsedOperator = Operator.from(operator);
+		return calculatorService.calculate(firstNumber, secondNumber, parsedOperator);
 	}
 }
