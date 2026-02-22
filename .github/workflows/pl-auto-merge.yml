@@ -1,0 +1,42 @@
+name: PL Auto Merge
+
+on:
+  workflow_run:
+    workflows: ["PR CI"]
+    types: [completed]
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: "Optional PR number for manual run"
+        required: false
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: pl-auto-merge-${{ github.event.workflow_run.head_branch || github.event.inputs.pr_number || github.run_id }}
+  cancel-in-progress: true
+
+jobs:
+  orchestrate:
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.event == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Run PL auto merge orchestrator
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          EVENT_NAME: ${{ github.event_name }}
+          HEAD_BRANCH: ${{ github.event.workflow_run.head_branch }}
+          HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
+          CI_CONCLUSION: ${{ github.event.workflow_run.conclusion }}
+          PR_NUMBER: ${{ github.event.inputs.pr_number }}
+        run: |
+          chmod +x .github/scripts/pl_auto_merge.sh
+          .github/scripts/pl_auto_merge.sh
