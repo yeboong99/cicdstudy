@@ -7,17 +7,27 @@ on:
       - '.github/workflows/**'
       - 'src/**'
       - 'build.gradle'
+      - 'settings.gradle'
+      - 'gradle/**'
       - 'Dockerfile'
       - 'docker-compose.prod.yml'
+      - 'infra/**'
 
 permissions:
-  contents: write
-  packages: write
+  contents: read
+  packages: read
+
+concurrency:
+  group: forcicd-prod-deploy
+  cancel-in-progress: false
 
 jobs:
   build:
-    name: 빌드
+    name: 빌드/테스트
     runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -32,38 +42,49 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
-      - name: Build with Gradle
-        run: ./gradlew build
+      - name: Build and Test with Gradle
+        run: ./gradlew clean test build
 
   tag:
-    name: 태그 생성
+    name: 태그/릴리즈
     needs: build
     runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
     outputs:
-      tag_name: ${{ steps.tag_version.outputs.new_tag }}
+      tag_name: ${{ steps.generate_tag.outputs.tag_name }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
-      - name: Create tag
-        id: tag_version
-        uses: mathieudutour/github-tag-action@v6.1
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
 
-      - name: CREATE release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Generate and push tag
+        id: generate_tag
+        run: |
+          set -euo pipefail
+          TAG_NAME="v$(date -u +'%Y.%m.%d')-${GITHUB_RUN_NUMBER}.${GITHUB_RUN_ATTEMPT}"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git tag "${TAG_NAME}"
+          git push origin "${TAG_NAME}"
+          echo "tag_name=${TAG_NAME}" >> "${GITHUB_OUTPUT}"
+
+      - name: Create release
+        uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ steps.tag_version.outputs.new_tag }}
-          release_name: Release ${{ steps.tag_version.outputs.new_tag }}
-          body: ${{ steps.tag_version.outputs.changelog }}
+          tag_name: ${{ steps.generate_tag.outputs.tag_name }}
+          generate_release_notes: true
 
   docker:
     name: 도커 이미지 빌드 & 푸시
     needs: tag
     runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      packages: write
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -73,7 +94,7 @@ jobs:
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
-          password: ${{ secrets.GHCR_TOKEN }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v6
@@ -86,8 +107,11 @@ jobs:
 
   deploy:
     name: 배포
-    needs: docker
+    needs: [docker, tag]
     runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -100,18 +124,85 @@ jobs:
           aws-region: ap-northeast-2
 
       - name: Deploy via SSM
+        env:
+          AWS_REGION: ap-northeast-2
+          EC2_INSTANCE_ID: ${{ secrets.EC2_INSTANCE_ID }}
+          TARGET_TAG: ${{ needs.tag.outputs.tag_name }}
+          GHCR_TOKEN: ${{ secrets.GHCR_TOKEN }}
         run: |
+          set -Eeuo pipefail
+
           COMPOSE_B64=$(base64 -w 0 docker-compose.prod.yml)
-          GHCR_TOKEN="${{ secrets.GHCR_TOKEN }}"
-          
+          GHCR_TOKEN_B64=$(printf '%s' "${GHCR_TOKEN}" | base64 -w 0)
+          REMOTE_SCRIPT_B64=$(cat <<'SCRIPT' | base64 -w 0
+          set -Eeuo pipefail
+          APP_DIR=/home/ubuntu/app
+          COMPOSE_PATH="${APP_DIR}/docker-compose.prod.yml"
+          ENV_PATH="${APP_DIR}/.env"
+
+          mkdir -p "${APP_DIR}"
+          echo "${COMPOSE_B64}" | base64 -d > "${COMPOSE_PATH}"
+
+          touch "${ENV_PATH}"
+          CURRENT_TAG="$(grep -E '^APP_IMAGE_TAG=' "${ENV_PATH}" | tail -n 1 | cut -d= -f2- || true)"
+          if [ -n "${CURRENT_TAG}" ]; then
+            if grep -q '^PREVIOUS_APP_IMAGE_TAG=' "${ENV_PATH}"; then
+              sed -i "s/^PREVIOUS_APP_IMAGE_TAG=.*/PREVIOUS_APP_IMAGE_TAG=${CURRENT_TAG}/" "${ENV_PATH}"
+            else
+              echo "PREVIOUS_APP_IMAGE_TAG=${CURRENT_TAG}" >> "${ENV_PATH}"
+            fi
+          fi
+
+          if grep -q '^APP_IMAGE_TAG=' "${ENV_PATH}"; then
+            sed -i "s/^APP_IMAGE_TAG=.*/APP_IMAGE_TAG=${TARGET_TAG}/" "${ENV_PATH}"
+          else
+            echo "APP_IMAGE_TAG=${TARGET_TAG}" >> "${ENV_PATH}"
+          fi
+
+          GHCR_TOKEN="$(printf '%s' "${GHCR_TOKEN_B64}" | base64 -d)"
+          echo "${GHCR_TOKEN}" | docker login ghcr.io -u yeboong99 --password-stdin
+          unset GHCR_TOKEN
+
+          cd "${APP_DIR}"
+          docker compose -f docker-compose.prod.yml pull app
+          docker compose -f docker-compose.prod.yml up -d --remove-orphans
+          docker image prune -f
+          SCRIPT
+          )
+
+          PARAMS=$(python3 - <<'PY'
+          import json
+          import os
+
+          params = {
+            "commands": [
+              f"export COMPOSE_B64='{os.environ['COMPOSE_B64']}'",
+              f"export TARGET_TAG='{os.environ['TARGET_TAG']}'",
+              f"export GHCR_TOKEN_B64='{os.environ['GHCR_TOKEN_B64']}'",
+              f"echo {os.environ['REMOTE_SCRIPT_B64']} | base64 -d > /tmp/forcicd-deploy.sh",
+              "bash /tmp/forcicd-deploy.sh",
+            ]
+          }
+          print(json.dumps(params))
+          PY
+          )
+
           COMMAND_ID=$(aws ssm send-command \
-            --instance-ids "${{ secrets.EC2_INSTANCE_ID }}" \
+            --instance-ids "${EC2_INSTANCE_ID}" \
             --document-name "AWS-RunShellScript" \
-            --parameters "commands=[\"set -e\",\"mkdir -p /home/ubuntu/app\",\"echo ${COMPOSE_B64} | base64 -d > /home/ubuntu/app/docker-compose.prod.yml\",\"echo ${GHCR_TOKEN} | docker login ghcr.io -u yeboong99 --password-stdin\",\"cd /home/ubuntu/app && docker compose -f docker-compose.prod.yml pull && docker compose -f docker-compose.prod.yml up -d\"]" \
-            --region ap-northeast-2 \
+            --parameters "${PARAMS}" \
+            --region "${AWS_REGION}" \
             --query "Command.CommandId" \
             --output text)
-    
+
           aws ssm wait command-executed \
-          --command-id "$COMMAND_ID" \
-          --instance-id "${{ secrets.EC2_INSTANCE_ID }}"
+            --command-id "${COMMAND_ID}" \
+            --instance-id "${EC2_INSTANCE_ID}" \
+            --region "${AWS_REGION}"
+
+          aws ssm list-command-invocations \
+            --command-id "${COMMAND_ID}" \
+            --details \
+            --region "${AWS_REGION}" \
+            --query "CommandInvocations[0].CommandPlugins[0].Output" \
+            --output text
