@@ -22,4 +22,26 @@ public class CalculatorController {
 		String result = calculatorService.addTwoNums(firstNumber, secondNumber);
 		return ResponseEntity.ok(result);
 	}
+
+	@GetMapping("/subtract")
+	public ResponseEntity<String> subtractTwoNumbers(@RequestParam int firstNumber, @RequestParam int secondNumber) {
+		String result = calculatorService.subtractTwoNums(firstNumber, secondNumber);
+		return ResponseEntity.ok(result);
+	}
+
+	@GetMapping("/multiply")
+	public ResponseEntity<String> multiplyTwoNumbers(@RequestParam int firstNumber, @RequestParam int secondNumber) {
+		String result = calculatorService.multiplyTwoNums(firstNumber, secondNumber);
+		return ResponseEntity.ok(result);
+	}
+
+	@GetMapping("/divide")
+	public ResponseEntity<String> divideTwoNumbers(@RequestParam int firstNumber, @RequestParam int secondNumber) {
+		try {
+			String result = calculatorService.divideTwoNums(firstNumber, secondNumber);
+			return ResponseEntity.ok(result);
+		} catch (ArithmeticException e) {
+			return ResponseEntity.badRequest().body(e.getMessage());
+		}
+	}
 }
