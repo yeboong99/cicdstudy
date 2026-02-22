@@ -26,6 +26,12 @@ variable "my_ips" {
   type = list(string) # 여러 IP를 허용하기 위해서 리스트로 선언
 }
 
+variable "app_ingress_cidrs" {
+  description = "애플리케이션(8080) 접근 허용 CIDR 목록"
+  type = list(string)
+  default = ["0.0.0.0/0"]
+}
+
 variable "db_name" {
   description = "MySQL 데이터베이스 이름"
   type = string

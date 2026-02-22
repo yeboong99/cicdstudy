@@ -68,6 +68,7 @@ resource "aws_security_group" "main" {
   name = "forcicd-sg"
   description = "forcicd security group"
   vpc_id = aws_vpc.main.id # 이 보안 그룹 설정을 사용할 vpc
+  revoke_rules_on_delete = true
 
   # ingress = 인바운드, egress = 아웃바운드
   ingress {
@@ -83,7 +84,7 @@ resource "aws_security_group" "main" {
     from_port = 8080
     to_port = 8080
     protocol = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
+    cidr_blocks = var.app_ingress_cidrs
   }
 
   egress {
@@ -128,6 +129,15 @@ resource "aws_instance" "main" {
   root_block_device {
     volume_size = 20
     volume_type = "gp3"
+    encrypted = true
+    delete_on_termination = true
+  }
+
+  # IMDSv2 강제 - SSRF 기반 메타데이터 탈취 리스크 완화
+  metadata_options {
+    http_endpoint = "enabled"
+    http_tokens = "required"
+    http_put_response_hop_limit = 2
   }
 
   tags = {
