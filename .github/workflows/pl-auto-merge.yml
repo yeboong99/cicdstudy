@@ -28,15 +28,16 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Run PL auto merge orchestrator
+      - name: Run PL agent merge decision orchestrator
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           REPO: ${{ github.repository }}
-          EVENT_NAME: ${{ github.event_name }}
           HEAD_BRANCH: ${{ github.event.workflow_run.head_branch }}
           HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
           CI_CONCLUSION: ${{ github.event.workflow_run.conclusion }}
           PR_NUMBER: ${{ github.event.inputs.pr_number }}
+          PL_AGENT_WEBHOOK_URL: ${{ secrets.PL_AGENT_WEBHOOK_URL }}
+          PL_AGENT_API_KEY: ${{ secrets.PL_AGENT_API_KEY }}
         run: |
           chmod +x .github/scripts/pl_auto_merge.sh
           .github/scripts/pl_auto_merge.sh

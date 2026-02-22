@@ -32,4 +32,7 @@ export AUTO_FIX_COMMAND='echo "fix hook" && ./gradlew test'
 ## 참고
 - GitHub Actions 워크플로우 `.github/workflows/agent-branch-autopr.yml`는
   `yeboong99/**` 브랜치 push 시 Docker+Gradle 검증 후 PR이 없으면 자동 생성한다.
+- PR 머지 허용/거부 최종판단은 `.github/workflows/pl-auto-merge.yml`에서
+  PL 에이전트 웹훅(`PL_AGENT_WEBHOOK_URL`) 호출 결과를 따른다.
+- 웹훅 요청/응답 형식은 `.github/PL_AGENT_WEBHOOK_CONTRACT.md`를 참고한다.
 - 실제 코드 수정(버그 자동 수정)은 `AUTO_FIX_COMMAND`에 연결된 도구/스크립트가 담당한다.
