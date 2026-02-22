@@ -3,13 +3,13 @@ services:
     image: mysql:8.0
     environment:
       MYSQL_DATABASE: forcicd
-      MYSQL_ROOT_PASSWORD: 19990524
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
     ports:
       - "3307:3306"
     volumes:
       - mysql_data:/var/lib/mysql
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-uroot", "-p19990524"]
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-uroot", "-p${DB_PASSWORD}"]
       interval: 5s
       timeout: 3s
       retries: 20
@@ -22,8 +22,8 @@ services:
     environment:
       SPRING_PROFILES_ACTIVE: local
       DB_URL: jdbc:mysql://db:3306/forcicd?useSSL=false&serverTimezone=UTC
-      DB_USERNAME: root
-      DB_PASSWORD: 19990524
+      DB_USERNAME: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
       SPRING_OUTPUT_ANSI_ENABLED: ALWAYS
     ports:
       - "8080:8080"
