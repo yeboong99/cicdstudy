@@ -2,6 +2,7 @@ package com.neulboong.forcicd.calculator.service;
 
 import static org.assertj.core.api.Assertions.*;
 
+import com.neulboong.forcicd.calculator.domain.Operator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -13,7 +14,7 @@ class CalculatorServiceTests {
 
 	@BeforeEach
 	void setUp() {
-		calculatorService = new CalculatorService();
+		calculatorService = new CalculatorService(new OperationExecutor(), new ResultFormatter());
 	}
 
 	@Nested
@@ -150,6 +151,17 @@ class CalculatorServiceTests {
 			assertThatThrownBy(() -> calculatorService.divideTwoNums(10, 0))
 				.isInstanceOf(ArithmeticException.class)
 				.hasMessage("0으로 나눌 수 없습니다.");
+		}
+	}
+
+	@Nested
+	@DisplayName("통합 연산 진입점 (calculate)")
+	class CalculateTests {
+
+		@Test
+		@DisplayName("operator enum을 통해 연산 수행")
+		void calculateWithOperatorEnum() {
+			assertThat(calculatorService.calculate(8, 2, Operator.DIVIDE)).isEqualTo("4");
 		}
 	}
 }
