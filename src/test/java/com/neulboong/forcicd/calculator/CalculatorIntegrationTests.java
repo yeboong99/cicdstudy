@@ -1,6 +1,5 @@
 package com.neulboong.forcicd.calculator;
 
-import static org.assertj.core.api.Assertions.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -11,7 +10,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.MvcResult;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -32,7 +30,10 @@ class CalculatorIntegrationTests {
 					.param("firstNumber", "100")
 					.param("secondNumber", "200"))
 				.andExpect(status().isOk())
-				.andExpect(content().string("300"));
+				.andExpect(jsonPath("$.firstNumber").value(100))
+				.andExpect(jsonPath("$.secondNumber").value(200))
+				.andExpect(jsonPath("$.operator").value("add"))
+				.andExpect(jsonPath("$.result").value("300"));
 		}
 
 		@Test
@@ -42,7 +43,10 @@ class CalculatorIntegrationTests {
 					.param("firstNumber", "100")
 					.param("secondNumber", "200"))
 				.andExpect(status().isOk())
-				.andExpect(content().string("-100"));
+				.andExpect(jsonPath("$.firstNumber").value(100))
+				.andExpect(jsonPath("$.secondNumber").value(200))
+				.andExpect(jsonPath("$.operator").value("subtract"))
+				.andExpect(jsonPath("$.result").value("-100"));
 		}
 
 		@Test
@@ -52,7 +56,10 @@ class CalculatorIntegrationTests {
 					.param("firstNumber", "12")
 					.param("secondNumber", "12"))
 				.andExpect(status().isOk())
-				.andExpect(content().string("144"));
+				.andExpect(jsonPath("$.firstNumber").value(12))
+				.andExpect(jsonPath("$.secondNumber").value(12))
+				.andExpect(jsonPath("$.operator").value("multiply"))
+				.andExpect(jsonPath("$.result").value("144"));
 		}
 
 		@Test
@@ -62,20 +69,21 @@ class CalculatorIntegrationTests {
 					.param("firstNumber", "100")
 					.param("secondNumber", "4"))
 				.andExpect(status().isOk())
-				.andExpect(content().string("25"));
+				.andExpect(jsonPath("$.firstNumber").value(100))
+				.andExpect(jsonPath("$.secondNumber").value(4))
+				.andExpect(jsonPath("$.operator").value("divide"))
+				.andExpect(jsonPath("$.result").value("25"));
 		}
 
 		@Test
 		@DisplayName("나눗셈 API - 소수 결과")
 		void divideDecimalEndToEnd() throws Exception {
-			MvcResult result = mockMvc.perform(get("/cal/divide")
+			mockMvc.perform(get("/cal/divide")
 					.param("firstNumber", "10")
 					.param("secondNumber", "3"))
 				.andExpect(status().isOk())
-				.andReturn();
-
-			double actual = Double.parseDouble(result.getResponse().getContentAsString());
-			assertThat(actual).isCloseTo(3.3333, withinPercentage(1));
+				.andExpect(jsonPath("$.operator").value("divide"))
+				.andExpect(jsonPath("$.result").value("3.3333333333333335"));
 		}
 
 		@Test
@@ -85,7 +93,9 @@ class CalculatorIntegrationTests {
 					.param("firstNumber", "10")
 					.param("secondNumber", "0"))
 				.andExpect(status().isBadRequest())
-				.andExpect(content().string("0으로 나눌 수 없습니다."));
+				.andExpect(jsonPath("$.status").value(400))
+				.andExpect(jsonPath("$.error").value("Bad Request"))
+				.andExpect(jsonPath("$.message").value("0으로 나눌 수 없습니다."));
 		}
 
 		@Test
@@ -95,7 +105,10 @@ class CalculatorIntegrationTests {
 					.param("firstNumber", "-50")
 					.param("secondNumber", "-30"))
 				.andExpect(status().isOk())
-				.andExpect(content().string("-80"));
+				.andExpect(jsonPath("$.firstNumber").value(-50))
+				.andExpect(jsonPath("$.secondNumber").value(-30))
+				.andExpect(jsonPath("$.operator").value("add"))
+				.andExpect(jsonPath("$.result").value("-80"));
 		}
 	}
 

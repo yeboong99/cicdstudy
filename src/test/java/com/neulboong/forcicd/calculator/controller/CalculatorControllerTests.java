@@ -28,7 +28,7 @@ class CalculatorControllerTests {
 	class AddEndpoint {
 
 		@Test
-		@DisplayName("정상 요청 시 200 OK와 결과 반환")
+		@DisplayName("정상 요청 시 200 OK와 구조화된 JSON 반환")
 		void addSuccess() throws Exception {
 			given(calculatorService.addTwoNums(3, 5)).willReturn("8");
 
@@ -36,7 +36,10 @@ class CalculatorControllerTests {
 					.param("firstNumber", "3")
 					.param("secondNumber", "5"))
 				.andExpect(status().isOk())
-				.andExpect(content().string("8"));
+				.andExpect(jsonPath("$.firstNumber").value(3))
+				.andExpect(jsonPath("$.secondNumber").value(5))
+				.andExpect(jsonPath("$.operator").value("add"))
+				.andExpect(jsonPath("$.result").value("8"));
 		}
 
 		@Test
@@ -44,7 +47,9 @@ class CalculatorControllerTests {
 		void addMissingParam() throws Exception {
 			mockMvc.perform(get("/cal/add")
 					.param("firstNumber", "3"))
-				.andExpect(status().isBadRequest());
+				.andExpect(status().isBadRequest())
+				.andExpect(jsonPath("$.status").value(400))
+				.andExpect(jsonPath("$.error").value("Bad Request"));
 		}
 	}
 
@@ -53,7 +58,7 @@ class CalculatorControllerTests {
 	class SubtractEndpoint {
 
 		@Test
-		@DisplayName("정상 요청 시 200 OK와 결과 반환")
+		@DisplayName("정상 요청 시 200 OK와 구조화된 JSON 반환")
 		void subtractSuccess() throws Exception {
 			given(calculatorService.subtractTwoNums(10, 3)).willReturn("7");
 
@@ -61,7 +66,10 @@ class CalculatorControllerTests {
 					.param("firstNumber", "10")
 					.param("secondNumber", "3"))
 				.andExpect(status().isOk())
-				.andExpect(content().string("7"));
+				.andExpect(jsonPath("$.firstNumber").value(10))
+				.andExpect(jsonPath("$.secondNumber").value(3))
+				.andExpect(jsonPath("$.operator").value("subtract"))
+				.andExpect(jsonPath("$.result").value("7"));
 		}
 	}
 
@@ -70,7 +78,7 @@ class CalculatorControllerTests {
 	class MultiplyEndpoint {
 
 		@Test
-		@DisplayName("정상 요청 시 200 OK와 결과 반환")
+		@DisplayName("정상 요청 시 200 OK와 구조화된 JSON 반환")
 		void multiplySuccess() throws Exception {
 			given(calculatorService.multiplyTwoNums(4, 5)).willReturn("20");
 
@@ -78,7 +86,10 @@ class CalculatorControllerTests {
 					.param("firstNumber", "4")
 					.param("secondNumber", "5"))
 				.andExpect(status().isOk())
-				.andExpect(content().string("20"));
+				.andExpect(jsonPath("$.firstNumber").value(4))
+				.andExpect(jsonPath("$.secondNumber").value(5))
+				.andExpect(jsonPath("$.operator").value("multiply"))
+				.andExpect(jsonPath("$.result").value("20"));
 		}
 	}
 
@@ -87,7 +98,7 @@ class CalculatorControllerTests {
 	class DivideEndpoint {
 
 		@Test
-		@DisplayName("정상 요청 시 200 OK와 결과 반환")
+		@DisplayName("정상 요청 시 200 OK와 구조화된 JSON 반환")
 		void divideSuccess() throws Exception {
 			given(calculatorService.divideTwoNums(10, 2)).willReturn("5");
 
@@ -95,11 +106,14 @@ class CalculatorControllerTests {
 					.param("firstNumber", "10")
 					.param("secondNumber", "2"))
 				.andExpect(status().isOk())
-				.andExpect(content().string("5"));
+				.andExpect(jsonPath("$.firstNumber").value(10))
+				.andExpect(jsonPath("$.secondNumber").value(2))
+				.andExpect(jsonPath("$.operator").value("divide"))
+				.andExpect(jsonPath("$.result").value("5"));
 		}
 
 		@Test
-		@DisplayName("0으로 나누기 시 400 에러와 메시지 반환")
+		@DisplayName("0으로 나누기 시 400 에러와 에러 응답 반환")
 		void divideByZero() throws Exception {
 			given(calculatorService.divideTwoNums(10, 0))
 				.willThrow(new ArithmeticException("0으로 나눌 수 없습니다."));
@@ -108,7 +122,9 @@ class CalculatorControllerTests {
 					.param("firstNumber", "10")
 					.param("secondNumber", "0"))
 				.andExpect(status().isBadRequest())
-				.andExpect(content().string("0으로 나눌 수 없습니다."));
+				.andExpect(jsonPath("$.status").value(400))
+				.andExpect(jsonPath("$.error").value("Bad Request"))
+				.andExpect(jsonPath("$.message").value("0으로 나눌 수 없습니다."));
 		}
 	}
 }
