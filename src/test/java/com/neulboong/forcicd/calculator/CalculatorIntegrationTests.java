@@ -1,5 +1,6 @@
 package com.neulboong.forcicd.calculator;
 
+import static org.hamcrest.Matchers.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -148,6 +149,25 @@ class CalculatorIntegrationTests {
 				.andExpect(view().name("home"))
 				.andExpect(model().attribute("result", "8"))
 				.andExpect(model().attribute("hasResult", true));
+		}
+
+		@Test
+		@DisplayName("연산 토글/기록 영역에 Selenium 식별자와 API operator 값이 노출된다")
+		void homeContainsStableUiSelectors() throws Exception {
+			mockMvc.perform(get("/"))
+				.andExpect(status().isOk())
+				.andExpect(content().string(containsString("data-testid=\"first-number-input\"")))
+				.andExpect(content().string(containsString("data-testid=\"second-number-input\"")))
+				.andExpect(content().string(containsString("data-testid=\"operator-option-add\"")))
+				.andExpect(content().string(containsString("data-testid=\"operator-option-subtract\"")))
+				.andExpect(content().string(containsString("data-testid=\"operator-option-multiply\"")))
+				.andExpect(content().string(containsString("data-testid=\"operator-option-divide\"")))
+				.andExpect(content().string(containsString("value=\"add\"")))
+				.andExpect(content().string(containsString("value=\"subtract\"")))
+				.andExpect(content().string(containsString("value=\"multiply\"")))
+				.andExpect(content().string(containsString("value=\"divide\"")))
+				.andExpect(content().string(containsString("data-testid=\"history-list\"")))
+				.andExpect(content().string(containsString("data-testid=\"clear-history-button\"")));
 		}
 
 		@Test
