@@ -35,7 +35,7 @@
     }
 
     .card {
-      width: min(560px, 92vw);
+      width: min(640px, 92vw);
       background: var(--card);
       border: 1px solid var(--border);
       border-radius: 20px;
@@ -62,7 +62,7 @@
     .fields {
       display: grid;
       gap: 12px;
-      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
     }
 
     label {
@@ -87,14 +87,34 @@
       box-shadow: 0 0 0 4px rgba(255, 159, 195, 0.25);
     }
 
+    .operator-fieldset {
+      border: 0;
+      padding: 0;
+      margin: 0;
+      min-width: 0;
+    }
+
+    .operator-fieldset legend {
+      font-weight: 600;
+      margin-bottom: 8px;
+      padding: 0;
+    }
+
     .operator-group {
       display: grid;
-      grid-template-columns: repeat(4, 1fr);
+      grid-template-columns: repeat(2, 1fr);
       gap: 8px;
     }
 
     .operator-group input[type="radio"] {
-      display: none;
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      margin: -1px;
+      padding: 0;
+      overflow: hidden;
+      clip: rect(0 0 0 0);
+      border: 0;
     }
 
     .operator-group label {
@@ -116,6 +136,11 @@
       background: var(--pink-50);
     }
 
+    .operator-group input[type="radio"]:focus-visible + label {
+      outline: 2px solid var(--pink-500);
+      outline-offset: 2px;
+    }
+
     .operator-group input[type="radio"]:checked + label {
       border-color: var(--pink-500);
       background: var(--pink-100);
@@ -123,7 +148,7 @@
       box-shadow: 0 0 0 3px rgba(255, 95, 158, 0.15);
     }
 
-    button {
+    .submit-button {
       border: none;
       background: linear-gradient(135deg, var(--pink-500), var(--pink-700));
       color: white;
@@ -135,9 +160,14 @@
       transition: transform 0.15s ease, box-shadow 0.15s ease;
     }
 
-    button:hover {
+    .submit-button:hover {
       transform: translateY(-1px);
       box-shadow: 0 12px 24px rgba(255, 95, 158, 0.25);
+    }
+
+    .submit-button:focus-visible {
+      outline: 2px solid var(--pink-500);
+      outline-offset: 2px;
     }
 
     .result {
@@ -156,10 +186,118 @@
 
     .result span {
       color: var(--pink-700);
+      word-break: break-word;
     }
 
     .result .error {
       color: #d32f2f;
+    }
+
+    .history {
+      display: grid;
+      gap: 10px;
+      margin-top: 8px;
+    }
+
+    .history-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .history h2 {
+      margin: 0;
+      font-size: 17px;
+      color: #5a3a48;
+    }
+
+    .history-clear {
+      border: 1px solid var(--border);
+      background: #fff;
+      color: var(--pink-700);
+      border-radius: 10px;
+      font-weight: 600;
+      padding: 8px 10px;
+      cursor: pointer;
+    }
+
+    .history-clear:focus-visible,
+    .history-item:focus-visible {
+      outline: 2px solid var(--pink-500);
+      outline-offset: 2px;
+    }
+
+    .history-empty {
+      margin: 0;
+      font-size: 14px;
+      color: #7b5364;
+    }
+
+    .history-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      display: grid;
+      gap: 8px;
+    }
+
+    .history-item {
+      width: 100%;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: #fff;
+      padding: 10px 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      cursor: pointer;
+      color: var(--ink);
+      font-size: 15px;
+      text-align: left;
+    }
+
+    .history-item:hover {
+      border-color: var(--pink-300);
+      background: var(--pink-50);
+    }
+
+    .history-expression {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .history-result {
+      color: var(--pink-700);
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    @media (min-width: 640px) {
+      .operator-group {
+        grid-template-columns: repeat(4, 1fr);
+      }
+    }
+
+    @media (max-width: 560px) {
+      body {
+        padding: 24px 12px;
+      }
+
+      .card {
+        padding: 22px;
+      }
+
+      h1 {
+        font-size: 24px;
+      }
+
+      .history-item {
+        flex-direction: column;
+        align-items: flex-start;
+      }
     }
   </style>
 </head>
@@ -168,48 +306,212 @@
     <h1>느리 핑크계산기에 온 걸 환영해요!</h1>
     <p>두 수를 입력하고 연산을 선택한 뒤 버튼을 누르면 결과가 나온답니다?^^</p>
 
-    <form action="/" method="get">
+    <form id="calculatorForm" action="/" method="get" data-testid="calculator-form">
       <div class="fields">
         <div>
           <label for="firstNumber">첫 번째 숫자</label>
           <input id="firstNumber" name="firstNumber" type="number" required
+                 data-testid="first-number-input"
                  th:value="${param.firstNumber != null ? param.firstNumber[0] : ''}" />
         </div>
         <div>
           <label for="secondNumber">두 번째 숫자</label>
           <input id="secondNumber" name="secondNumber" type="number" required
+                 data-testid="second-number-input"
                  th:value="${param.secondNumber != null ? param.secondNumber[0] : ''}" />
         </div>
       </div>
 
-      <div>
-        <label>연산 선택</label>
+      <fieldset class="operator-fieldset" data-testid="operator-toggle-group">
+        <legend>연산 선택</legend>
         <div class="operator-group">
           <input type="radio" id="op-add" name="operator" value="add"
+                 data-testid="operator-option-add"
                  th:checked="${operator == null || operator == 'add'}" />
-          <label for="op-add">+ 덧셈</label>
+          <label for="op-add" data-testid="operator-button-add">+ 덧셈</label>
 
           <input type="radio" id="op-subtract" name="operator" value="subtract"
+                 data-testid="operator-option-subtract"
                  th:checked="${operator == 'subtract'}" />
-          <label for="op-subtract">− 뺄셈</label>
+          <label for="op-subtract" data-testid="operator-button-subtract">− 뺄셈</label>
 
           <input type="radio" id="op-multiply" name="operator" value="multiply"
+                 data-testid="operator-option-multiply"
                  th:checked="${operator == 'multiply'}" />
-          <label for="op-multiply">× 곱셈</label>
+          <label for="op-multiply" data-testid="operator-button-multiply">× 곱셈</label>
 
           <input type="radio" id="op-divide" name="operator" value="divide"
+                 data-testid="operator-option-divide"
                  th:checked="${operator == 'divide'}" />
-          <label for="op-divide">÷ 나눗셈</label>
+          <label for="op-divide" data-testid="operator-button-divide">÷ 나눗셈</label>
         </div>
+      </fieldset>
+
+      <button class="submit-button" type="submit" data-testid="calculate-button">계산하기</button>
+
+      <input id="stateHasResult" type="hidden" th:value="${hasResult != null ? hasResult : false}" />
+      <input id="stateFirstNumber" type="hidden" th:value="${param.firstNumber != null ? param.firstNumber[0] : ''}" />
+      <input id="stateSecondNumber" type="hidden" th:value="${param.secondNumber != null ? param.secondNumber[0] : ''}" />
+      <input id="stateOperator" type="hidden" th:value="${operator != null ? operator : 'add'}" />
+      <input id="stateResult" type="hidden" th:value="${hasResult != null && hasResult ? result : ''}" />
+
+      <div class="result" data-testid="calculation-result">
+        <span th:if="${hasResult}" th:text="${result}" data-testid="result-value">0</span>
+        <span th:unless="${hasResult}" data-testid="result-placeholder">여기에 결과가 표시됩니다</span>
       </div>
 
-      <button type="submit">계산하기</button>
-
-      <div class="result">
-        <span th:if="${hasResult}" th:text="${result}">0</span>
-        <span th:unless="${hasResult}">여기에 결과가 표시됩니다</span>
-      </div>
+      <section class="history" aria-label="최근 계산 기록">
+        <div class="history-head">
+          <h2>최근 계산 기록</h2>
+          <button type="button" class="history-clear" id="clearHistoryButton" data-testid="clear-history-button">기록 지우기</button>
+        </div>
+        <p class="history-empty" id="historyEmptyMessage" data-testid="history-empty">기록이 없습니다.</p>
+        <ul class="history-list" id="historyList" data-testid="history-list"></ul>
+      </section>
     </form>
   </main>
+
+  <script>
+    (() => {
+      const HISTORY_KEY = "calculator-history-v1";
+      const MAX_HISTORY_SIZE = 8;
+
+      const operatorMeta = {
+        add: { apiOperator: "add", symbol: "+" },
+        subtract: { apiOperator: "subtract", symbol: "-" },
+        multiply: { apiOperator: "multiply", symbol: "×" },
+        divide: { apiOperator: "divide", symbol: "÷" }
+      };
+
+      const validOperators = new Set(Object.keys(operatorMeta));
+
+      const form = document.getElementById("calculatorForm");
+      const firstNumberInput = document.getElementById("firstNumber");
+      const historyList = document.getElementById("historyList");
+      const clearHistoryButton = document.getElementById("clearHistoryButton");
+      const historyEmptyMessage = document.getElementById("historyEmptyMessage");
+      const stateHasResult = document.getElementById("stateHasResult");
+      const stateFirstNumber = document.getElementById("stateFirstNumber");
+      const stateSecondNumber = document.getElementById("stateSecondNumber");
+      const stateOperator = document.getElementById("stateOperator");
+      const stateResult = document.getElementById("stateResult");
+
+      const isNumericValue = (value) => /^-?\d+(\.\d+)?$/.test(String(value).trim());
+
+      const getHistory = () => {
+        try {
+          const raw = localStorage.getItem(HISTORY_KEY);
+          const parsed = raw ? JSON.parse(raw) : [];
+          return Array.isArray(parsed) ? parsed : [];
+        } catch (error) {
+          return [];
+        }
+      };
+
+      const saveHistory = (items) => {
+        localStorage.setItem(HISTORY_KEY, JSON.stringify(items));
+      };
+
+      const renderHistory = () => {
+        const history = getHistory();
+        historyList.innerHTML = "";
+
+        if (history.length === 0) {
+          historyEmptyMessage.hidden = false;
+          return;
+        }
+
+        historyEmptyMessage.hidden = true;
+
+        history.forEach((item, index) => {
+          const meta = operatorMeta[item.operator] || operatorMeta.add;
+
+          const listItem = document.createElement("li");
+          const button = document.createElement("button");
+          button.type = "button";
+          button.className = "history-item";
+          button.setAttribute("data-testid", "history-item-" + index);
+          button.setAttribute("aria-label", item.result + "를 첫 번째 숫자로 입력");
+
+          const expressionElement = document.createElement("span");
+          expressionElement.className = "history-expression";
+          expressionElement.textContent = item.firstNumber + " " + meta.symbol + " " + item.secondNumber;
+
+          const resultElement = document.createElement("span");
+          resultElement.className = "history-result";
+          resultElement.textContent = "= " + item.result;
+
+          button.appendChild(expressionElement);
+          button.appendChild(resultElement);
+          button.addEventListener("click", () => {
+            firstNumberInput.value = item.result;
+            firstNumberInput.focus();
+          });
+
+          listItem.appendChild(button);
+          historyList.appendChild(listItem);
+        });
+      };
+
+      const normalizeOperator = (rawOperator) => {
+        if (!validOperators.has(rawOperator)) {
+          return operatorMeta.add.apiOperator;
+        }
+        return operatorMeta[rawOperator].apiOperator;
+      };
+
+      const appendCurrentCalculationToHistory = () => {
+        if (stateHasResult.value !== "true") {
+          return;
+        }
+
+        const firstNumber = stateFirstNumber.value;
+        const secondNumber = stateSecondNumber.value;
+        const result = stateResult.value;
+        const operator = normalizeOperator(stateOperator.value);
+
+        if (!isNumericValue(firstNumber) || !isNumericValue(secondNumber) || !isNumericValue(result)) {
+          return;
+        }
+
+        const newItem = {
+          firstNumber,
+          secondNumber,
+          operator,
+          result,
+          createdAt: Date.now()
+        };
+
+        const history = getHistory();
+        const latest = history[0];
+        const isDuplicate = latest
+          && latest.firstNumber === newItem.firstNumber
+          && latest.secondNumber === newItem.secondNumber
+          && latest.operator === newItem.operator
+          && latest.result === newItem.result;
+
+        if (!isDuplicate) {
+          history.unshift(newItem);
+          saveHistory(history.slice(0, MAX_HISTORY_SIZE));
+        }
+      };
+
+      clearHistoryButton.addEventListener("click", () => {
+        localStorage.removeItem(HISTORY_KEY);
+        renderHistory();
+      });
+
+      form.addEventListener("submit", () => {
+        const selectedOperator = document.querySelector("input[name='operator']:checked");
+        if (!selectedOperator || !validOperators.has(selectedOperator.value)) {
+          const defaultOperator = document.getElementById("op-add");
+          defaultOperator.checked = true;
+        }
+      });
+
+      appendCurrentCalculationToHistory();
+      renderHistory();
+    })();
+  </script>
 </body>
 </html>
