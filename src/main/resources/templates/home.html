@@ -35,7 +35,7 @@
     }
 
     .card {
-      width: min(560px, 92vw);
+      width: min(760px, 92vw);
       background: var(--card);
       border: 1px solid var(--border);
       border-radius: 20px;
@@ -54,9 +54,71 @@
       color: #5a3a48;
     }
 
+    h2, h3 {
+      margin: 0;
+      letter-spacing: -0.3px;
+    }
+
+    .section-card {
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      background: #fff;
+      padding: 16px;
+      margin-bottom: 18px;
+    }
+
+    .section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .helper-text {
+      margin: 0 0 12px;
+      font-size: 14px;
+      color: #6c4354;
+    }
+
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 6px 10px;
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: 700;
+      background: var(--pink-100);
+      color: var(--pink-700);
+      border: 1px solid var(--pink-200);
+    }
+
+    .auth-user-summary {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 12px;
+      padding: 12px;
+      border: 1px solid var(--pink-200);
+      border-radius: 12px;
+      background: var(--pink-50);
+    }
+
+    .auth-user-summary strong {
+      color: var(--pink-700);
+    }
+
+    .auth-forms {
+      display: grid;
+      gap: 12px;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    }
+
     form {
       display: grid;
-      gap: 16px;
+      gap: 12px;
     }
 
     .fields {
@@ -81,6 +143,19 @@
       color: var(--ink);
     }
 
+    input[type="text"],
+    input[type="password"] {
+      width: 100%;
+      padding: 10px 12px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: #fff;
+      font-size: 14px;
+      color: var(--ink);
+    }
+
+    input[type="text"]:focus,
+    input[type="password"]:focus,
     input[type="number"]:focus {
       outline: 2px solid var(--pink-300);
       border-color: var(--pink-300);
@@ -131,13 +206,102 @@
       padding: 12px 16px;
       border-radius: 12px;
       cursor: pointer;
-      font-size: 16px;
+      font-size: 14px;
       transition: transform 0.15s ease, box-shadow 0.15s ease;
     }
 
     button:hover {
       transform: translateY(-1px);
       box-shadow: 0 12px 24px rgba(255, 95, 158, 0.25);
+    }
+
+    button:disabled {
+      cursor: not-allowed;
+      opacity: 0.6;
+      transform: none;
+      box-shadow: none;
+    }
+
+    .ghost-button {
+      background: #fff;
+      color: var(--pink-700);
+      border: 1px solid var(--pink-300);
+      box-shadow: none;
+    }
+
+    .ghost-button:hover {
+      box-shadow: none;
+      background: var(--pink-50);
+    }
+
+    .danger-button {
+      background: linear-gradient(135deg, #ff6b6b, #d64545);
+    }
+
+    .history-list {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: grid;
+      gap: 8px;
+    }
+
+    .history-item {
+      width: 100%;
+      text-align: left;
+      background: #fff;
+      color: var(--ink);
+      border: 1px solid var(--pink-200);
+      box-shadow: none;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      font-weight: 600;
+    }
+
+    .history-item:hover {
+      background: var(--pink-50);
+      border-color: var(--pink-300);
+      box-shadow: none;
+    }
+
+    .history-item-meta {
+      font-size: 12px;
+      color: #6c4354;
+      font-weight: 500;
+    }
+
+    .message {
+      border-radius: 10px;
+      padding: 10px 12px;
+      font-size: 14px;
+      margin: 0 0 12px;
+      border: 1px solid transparent;
+    }
+
+    .message.info {
+      color: #6c4354;
+      background: var(--pink-50);
+      border-color: var(--pink-200);
+    }
+
+    .message.success {
+      color: #155724;
+      background: #ecf8ef;
+      border-color: #b4dfc1;
+    }
+
+    .message.error {
+      color: #9e2331;
+      background: #ffecef;
+      border-color: #ffc4cc;
+    }
+
+    .auth-action-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
     }
 
     .result {
@@ -161,23 +325,110 @@
     .result .error {
       color: #d32f2f;
     }
+
+    @media (max-width: 640px) {
+      .card {
+        padding: 20px;
+      }
+
+      .section-header {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .status-badge {
+        width: 100%;
+        justify-content: center;
+      }
+    }
   </style>
 </head>
 <body>
-  <main class="card">
+  <main class="card" data-testid="home-page">
     <h1>느리 핑크계산기에 온 걸 환영해요!</h1>
     <p>두 수를 입력하고 연산을 선택한 뒤 버튼을 누르면 결과가 나온답니다?^^</p>
 
-    <form action="/" method="get">
+    <section class="section-card" data-testid="auth-section">
+      <div class="section-header">
+        <h2>회원 인증</h2>
+        <span id="authStatusBadge" class="status-badge" data-testid="auth-status-badge">로그인 확인 중</span>
+      </div>
+
+      <p id="authMessage" class="message info" data-testid="auth-message">세션 상태를 확인하고 있습니다.</p>
+
+      <div id="authUserSummary" class="auth-user-summary" data-testid="auth-user-summary" hidden>
+        <div>
+          <strong id="authUserName">-</strong>
+          <span id="authUserMeta"></span>
+        </div>
+        <div class="auth-action-row">
+          <button id="refreshMeButton" type="button" class="ghost-button" data-testid="refresh-me-button">내 정보 확인</button>
+          <button id="logoutButton" type="button" class="danger-button" data-testid="logout-button">로그아웃</button>
+        </div>
+      </div>
+
+      <div id="authFormsContainer" class="auth-forms" data-testid="auth-forms">
+        <form id="signupForm" data-testid="signup-form" novalidate>
+          <h3>회원가입</h3>
+          <div>
+            <label for="signupUsername">아이디</label>
+            <input id="signupUsername" name="username" type="text" minlength="4" maxlength="20"
+                   placeholder="4~20자, 영문/숫자/_" required data-testid="signup-username" />
+          </div>
+          <div>
+            <label for="signupPassword">비밀번호</label>
+            <input id="signupPassword" name="password" type="password" minlength="8" maxlength="64"
+                   required autocomplete="new-password" data-testid="signup-password" />
+          </div>
+          <div>
+            <label for="signupDisplayName">닉네임</label>
+            <input id="signupDisplayName" name="displayName" type="text" minlength="1" maxlength="30"
+                   required data-testid="signup-display-name" />
+          </div>
+          <button id="signupSubmitButton" type="submit" data-testid="signup-submit-button">회원가입</button>
+        </form>
+
+        <form id="loginForm" data-testid="login-form" novalidate>
+          <h3>로그인</h3>
+          <div>
+            <label for="loginUsername">아이디</label>
+            <input id="loginUsername" name="username" type="text" required autocomplete="username"
+                   data-testid="login-username" />
+          </div>
+          <div>
+            <label for="loginPassword">비밀번호</label>
+            <input id="loginPassword" name="password" type="password" required autocomplete="current-password"
+                   data-testid="login-password" />
+          </div>
+          <button id="loginSubmitButton" type="submit" data-testid="login-submit-button">로그인</button>
+        </form>
+      </div>
+    </section>
+
+    <section class="section-card" data-testid="history-section">
+      <div class="section-header">
+        <h2>최근 계산 기록</h2>
+        <button id="historyRefreshButton" type="button" class="ghost-button" data-testid="history-refresh-button">
+          기록 새로고침
+        </button>
+      </div>
+      <p class="helper-text">로그인 성공 시 즉시 최신 20개 기록을 자동 조회합니다.</p>
+      <p id="historyMessage" class="message info" data-testid="history-message">로그인하면 계산 기록을 볼 수 있어요.</p>
+      <ul id="historyList" class="history-list" data-testid="history-list"></ul>
+    </section>
+
+    <form action="/" method="get" data-testid="calculator-form">
       <div class="fields">
         <div>
           <label for="firstNumber">첫 번째 숫자</label>
           <input id="firstNumber" name="firstNumber" type="number" required
+                 data-testid="first-number-input"
                  th:value="${param.firstNumber != null ? param.firstNumber[0] : ''}" />
         </div>
         <div>
           <label for="secondNumber">두 번째 숫자</label>
           <input id="secondNumber" name="secondNumber" type="number" required
+                 data-testid="second-number-input"
                  th:value="${param.secondNumber != null ? param.secondNumber[0] : ''}" />
         </div>
       </div>
@@ -203,13 +454,421 @@
         </div>
       </div>
 
-      <button type="submit">계산하기</button>
+      <button type="submit" data-testid="calculate-submit-button">계산하기</button>
 
-      <div class="result">
+      <div class="result" data-testid="calculator-result">
         <span th:if="${hasResult}" th:text="${result}">0</span>
         <span th:unless="${hasResult}">여기에 결과가 표시됩니다</span>
       </div>
     </form>
   </main>
+  <script>
+    (function () {
+      "use strict";
+
+      var CODE_MESSAGES = {
+        AUTH_001: "아이디 또는 비밀번호가 일치하지 않습니다.",
+        AUTH_002: "로그인이 필요합니다.",
+        AUTH_003: "이미 로그인된 세션입니다.",
+        USER_001: "이미 존재하는 아이디입니다.",
+        USER_002: "회원가입 입력값을 확인해 주세요."
+      };
+
+      var authState = {
+        loggedIn: false,
+        user: null
+      };
+
+      var elements = {
+        authStatusBadge: document.getElementById("authStatusBadge"),
+        authMessage: document.getElementById("authMessage"),
+        authUserSummary: document.getElementById("authUserSummary"),
+        authUserName: document.getElementById("authUserName"),
+        authUserMeta: document.getElementById("authUserMeta"),
+        authFormsContainer: document.getElementById("authFormsContainer"),
+        signupForm: document.getElementById("signupForm"),
+        loginForm: document.getElementById("loginForm"),
+        logoutButton: document.getElementById("logoutButton"),
+        refreshMeButton: document.getElementById("refreshMeButton"),
+        historyRefreshButton: document.getElementById("historyRefreshButton"),
+        historyMessage: document.getElementById("historyMessage"),
+        historyList: document.getElementById("historyList"),
+        firstNumberInput: document.getElementById("firstNumber")
+      };
+
+      function setMessage(target, message, type) {
+        if (!target) {
+          return;
+        }
+        target.textContent = message;
+        target.className = "message " + (type || "info");
+      }
+
+      function toErrorMessage(error, fallbackMessage) {
+        if (!error) {
+          return fallbackMessage;
+        }
+        var data = error.data || {};
+        if (Array.isArray(data.errors) && data.errors.length > 0) {
+          return data.errors.map(function (item) {
+            if (item && item.defaultMessage) {
+              return item.defaultMessage;
+            }
+            return "";
+          }).filter(Boolean).join(" / ");
+        }
+        if (data.message) {
+          return data.message;
+        }
+        if (data.code && CODE_MESSAGES[data.code]) {
+          return CODE_MESSAGES[data.code];
+        }
+        if (error.message) {
+          return error.message;
+        }
+        return fallbackMessage;
+      }
+
+      function formatUser(user) {
+        if (!user) {
+          return "";
+        }
+        var display = user.displayName || user.username || "사용자";
+        var username = user.username ? "(@" + user.username + ")" : "";
+        return display + " " + username;
+      }
+
+      function setLoadingButtons(loading) {
+        var buttons = [
+          elements.signupForm ? elements.signupForm.querySelector("button[type='submit']") : null,
+          elements.loginForm ? elements.loginForm.querySelector("button[type='submit']") : null,
+          elements.logoutButton,
+          elements.refreshMeButton,
+          elements.historyRefreshButton
+        ];
+        buttons.forEach(function (button) {
+          if (button) {
+            button.disabled = loading;
+          }
+        });
+
+        if (!loading) {
+          elements.historyRefreshButton.disabled = !authState.loggedIn;
+        }
+      }
+
+      function setLoggedInUser(user) {
+        authState.loggedIn = true;
+        authState.user = user || {};
+
+        elements.authStatusBadge.textContent = "로그인됨";
+        elements.authUserSummary.hidden = false;
+        elements.authFormsContainer.hidden = true;
+        elements.authUserName.textContent = formatUser(authState.user);
+        elements.authUserMeta.textContent = authState.user.createdAt ? "가입일: " + authState.user.createdAt : "";
+        elements.historyRefreshButton.disabled = false;
+      }
+
+      function setLoggedOutState() {
+        authState.loggedIn = false;
+        authState.user = null;
+
+        elements.authStatusBadge.textContent = "로그아웃 상태";
+        elements.authUserSummary.hidden = true;
+        elements.authFormsContainer.hidden = false;
+        elements.historyRefreshButton.disabled = true;
+        renderHistory([]);
+      }
+
+      function renderHistory(items) {
+        var list = elements.historyList;
+        list.innerHTML = "";
+
+        if (!Array.isArray(items) || items.length === 0) {
+          return;
+        }
+
+        items.forEach(function (item) {
+          var button = document.createElement("button");
+          button.type = "button";
+          button.className = "history-item";
+          button.setAttribute("data-testid", "history-item");
+          button.setAttribute("data-history-id", String(item.historyId || ""));
+
+          var expression = item.firstNumber + " " + operatorSymbol(item.operator) + " " + item.secondNumber + " = " + item.result;
+          var createdAt = item.createdAt ? item.createdAt : "";
+          var expressionSpan = document.createElement("span");
+          expressionSpan.textContent = expression;
+          var createdAtSpan = document.createElement("span");
+          createdAtSpan.className = "history-item-meta";
+          createdAtSpan.textContent = createdAt;
+          button.appendChild(expressionSpan);
+          button.appendChild(createdAtSpan);
+          button.addEventListener("click", function () {
+            applyHistoryToFirstNumber(item);
+          });
+
+          var li = document.createElement("li");
+          li.appendChild(button);
+          list.appendChild(li);
+        });
+      }
+
+      function operatorSymbol(operator) {
+        switch (operator) {
+          case "add":
+            return "+";
+          case "subtract":
+            return "-";
+          case "multiply":
+            return "x";
+          case "divide":
+            return "/";
+          default:
+            return operator || "?";
+        }
+      }
+
+      function applyHistoryToFirstNumber(item) {
+        if (!elements.firstNumberInput) {
+          return;
+        }
+        elements.firstNumberInput.value = item.result;
+        elements.firstNumberInput.dispatchEvent(new Event("input", { bubbles: true }));
+        setMessage(elements.historyMessage, "기록을 선택해 첫 번째 숫자에 결과를 채웠습니다.", "success");
+
+        document.dispatchEvent(new CustomEvent("calculator-history-selected", {
+          detail: item
+        }));
+      }
+
+      async function requestJson(url, options) {
+        var requestOptions = options || {};
+        var headers = new Headers(requestOptions.headers || {});
+
+        if (requestOptions.body && !headers.has("Content-Type")) {
+          headers.set("Content-Type", "application/json");
+        }
+
+        requestOptions.headers = headers;
+        requestOptions.credentials = "same-origin";
+
+        var response = await fetch(url, requestOptions);
+        var contentType = response.headers.get("content-type") || "";
+        var data = null;
+
+        if (contentType.indexOf("application/json") !== -1) {
+          data = await response.json().catch(function () {
+            return null;
+          });
+        } else if (response.status !== 204) {
+          var text = await response.text();
+          if (text) {
+            data = { message: text };
+          }
+        }
+
+        if (!response.ok) {
+          var error = new Error((data && data.message) || "요청 처리 중 오류가 발생했습니다.");
+          error.status = response.status;
+          error.data = data || {};
+          throw error;
+        }
+
+        return data;
+      }
+
+      async function fetchHistory(options) {
+        var config = options || {};
+        var silent = Boolean(config.silent);
+        var forceRequest = Boolean(config.forceRequest);
+        var verifyAfterLogout = Boolean(config.verifyAfterLogout);
+
+        if (!authState.loggedIn && !forceRequest) {
+          setMessage(elements.historyMessage, "로그인하면 계산 기록을 볼 수 있어요.", "info");
+          renderHistory([]);
+          return;
+        }
+
+        try {
+          var data = await requestJson("/api/v1/calculations/history?limit=20", {
+            method: "GET"
+          });
+          var items = data && Array.isArray(data.items) ? data.items : [];
+
+          renderHistory(items);
+
+          if (verifyAfterLogout) {
+            setMessage(elements.authMessage, "로그아웃되었지만 보호 API 접근이 가능합니다. 서버 세션 만료를 확인해 주세요.", "error");
+            return;
+          }
+
+          if (!silent) {
+            setMessage(elements.historyMessage, "최근 계산 기록 " + items.length + "건을 불러왔습니다.", "success");
+          }
+        } catch (error) {
+          if (error.status === 401) {
+            setLoggedOutState();
+            if (verifyAfterLogout) {
+              setMessage(elements.authMessage, "로그아웃 완료: 보호 API 접근 차단을 확인했습니다.", "success");
+              setMessage(elements.historyMessage, "로그아웃되어 계산 기록 조회가 차단되었습니다.", "info");
+              return;
+            }
+            if (!silent) {
+              setMessage(elements.historyMessage, "로그인이 필요합니다.", "info");
+            }
+            return;
+          }
+
+          setMessage(elements.historyMessage, toErrorMessage(error, "계산 기록 조회에 실패했습니다."), "error");
+        }
+      }
+
+      function validateSignup(username, password, displayName) {
+        if (!/^[A-Za-z0-9_]{4,20}$/.test(username || "")) {
+          return "아이디는 4~20자의 영문/숫자/_만 사용할 수 있습니다.";
+        }
+        if (!password || password.length < 8 || password.length > 64) {
+          return "비밀번호는 8~64자로 입력해 주세요.";
+        }
+        if (!displayName || displayName.length < 1 || displayName.length > 30) {
+          return "닉네임은 1~30자로 입력해 주세요.";
+        }
+        return "";
+      }
+
+      async function onSignupSubmit(event) {
+        event.preventDefault();
+
+        var formData = new FormData(elements.signupForm);
+        var username = String(formData.get("username") || "").trim();
+        var password = String(formData.get("password") || "");
+        var displayName = String(formData.get("displayName") || "").trim();
+
+        var validationMessage = validateSignup(username, password, displayName);
+        if (validationMessage) {
+          setMessage(elements.authMessage, validationMessage, "error");
+          return;
+        }
+
+        setLoadingButtons(true);
+        try {
+          await requestJson("/api/v1/auth/signup", {
+            method: "POST",
+            body: JSON.stringify({
+              username: username,
+              password: password,
+              displayName: displayName
+            })
+          });
+
+          setMessage(elements.authMessage, "회원가입이 완료되었습니다. 로그인해 주세요.", "success");
+          elements.signupForm.reset();
+          var loginUsernameInput = document.getElementById("loginUsername");
+          if (loginUsernameInput) {
+            loginUsernameInput.value = username;
+            loginUsernameInput.focus();
+          }
+        } catch (error) {
+          setMessage(elements.authMessage, toErrorMessage(error, "회원가입에 실패했습니다."), "error");
+        } finally {
+          setLoadingButtons(false);
+        }
+      }
+
+      async function onLoginSubmit(event) {
+        event.preventDefault();
+
+        var formData = new FormData(elements.loginForm);
+        var username = String(formData.get("username") || "").trim();
+        var password = String(formData.get("password") || "");
+
+        if (!username || !password) {
+          setMessage(elements.authMessage, "아이디와 비밀번호를 모두 입력해 주세요.", "error");
+          return;
+        }
+
+        setLoadingButtons(true);
+        try {
+          var user = await requestJson("/api/v1/auth/login", {
+            method: "POST",
+            body: JSON.stringify({
+              username: username,
+              password: password
+            })
+          });
+
+          setLoggedInUser(user || { username: username });
+          setMessage(elements.authMessage, "로그인에 성공했습니다. 계산 기록을 조회합니다.", "success");
+          setMessage(elements.historyMessage, "로그인 성공: 최신 기록을 조회 중입니다.", "info");
+          await fetchHistory({ silent: false });
+          elements.loginForm.reset();
+        } catch (error) {
+          setMessage(elements.authMessage, toErrorMessage(error, "로그인에 실패했습니다."), "error");
+        } finally {
+          setLoadingButtons(false);
+        }
+      }
+
+      async function onLogoutClick() {
+        setLoadingButtons(true);
+        try {
+          await requestJson("/api/v1/auth/logout", { method: "POST" });
+          setLoggedOutState();
+          setMessage(elements.authMessage, "로그아웃되었습니다. 보호 API 차단 여부를 확인합니다.", "info");
+          await fetchHistory({ forceRequest: true, verifyAfterLogout: true, silent: true });
+        } catch (error) {
+          if (error.status === 401) {
+            setLoggedOutState();
+            setMessage(elements.authMessage, "이미 로그아웃 상태입니다.", "info");
+            return;
+          }
+          setMessage(elements.authMessage, toErrorMessage(error, "로그아웃 처리에 실패했습니다."), "error");
+        } finally {
+          setLoadingButtons(false);
+        }
+      }
+
+      async function refreshCurrentUser(options) {
+        var config = options || {};
+        try {
+          var user = await requestJson("/api/v1/auth/me", { method: "GET" });
+          setLoggedInUser(user);
+          if (!config.silent) {
+            setMessage(elements.authMessage, "세션이 유효합니다.", "success");
+          }
+          await fetchHistory({ silent: true });
+        } catch (error) {
+          if (error.status === 401) {
+            setLoggedOutState();
+            setMessage(elements.authMessage, config.silent ? "로그인 상태가 아니에요. 로그인 후 기록을 조회할 수 있습니다." : "로그인되지 않은 상태입니다.", "info");
+            return;
+          }
+          setMessage(elements.authMessage, toErrorMessage(error, "세션 확인에 실패했습니다."), "error");
+        }
+      }
+
+      function bindEvents() {
+        elements.signupForm.addEventListener("submit", onSignupSubmit);
+        elements.loginForm.addEventListener("submit", onLoginSubmit);
+        elements.logoutButton.addEventListener("click", onLogoutClick);
+        elements.refreshMeButton.addEventListener("click", function () {
+          refreshCurrentUser({ silent: false });
+        });
+        elements.historyRefreshButton.addEventListener("click", function () {
+          fetchHistory({ silent: false });
+        });
+      }
+
+      async function init() {
+        bindEvents();
+        setLoggedOutState();
+        setMessage(elements.authMessage, "세션 상태를 확인하고 있습니다.", "info");
+        await refreshCurrentUser({ silent: true });
+      }
+
+      init();
+    })();
+  </script>
 </body>
 </html>

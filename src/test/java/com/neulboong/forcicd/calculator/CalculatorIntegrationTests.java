@@ -1,5 +1,6 @@
 package com.neulboong.forcicd.calculator;
 
+import static org.hamcrest.Matchers.containsString;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -134,7 +135,12 @@ class CalculatorIntegrationTests {
 		void homeWithoutParams() throws Exception {
 			mockMvc.perform(get("/"))
 				.andExpect(status().isOk())
-				.andExpect(view().name("home"));
+				.andExpect(view().name("home"))
+				.andExpect(content().string(containsString("data-testid=\"signup-form\"")))
+				.andExpect(content().string(containsString("data-testid=\"login-form\"")))
+				.andExpect(content().string(containsString("data-testid=\"logout-button\"")))
+				.andExpect(content().string(containsString("data-testid=\"history-list\"")))
+				.andExpect(content().string(containsString("/api/v1/calculations/history?limit=20")));
 		}
 
 		@Test
